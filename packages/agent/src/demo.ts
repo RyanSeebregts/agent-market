@@ -6,8 +6,8 @@ import chalk from "chalk";
 
 dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 
-import { AgentWallet, EscrowContract } from "@flaregate/shared";
-import { agentFetch, getCatalog } from "./sdk.js";
+import { AgentWallet, EscrowContract, ZERO_ADDRESS } from "@flaregate/shared";
+import { agentFetch, agentFetchWithToken, getCatalog } from "./sdk.js";
 import { makeLiveLayer } from "./layers.js";
 
 const GATEWAY_URL = "http://localhost:3000";
@@ -118,10 +118,53 @@ const demo = Effect.gen(function* () {
     yield* log.hash(`Data hash:  ${result.dataHash}`);
     yield* log.hash(`Match:      ${result.hashesMatch ? chalk.green("YES") : chalk.red("NO")}`);
 
+    // --- Step 4: FXRP Token Payment (FAssets) ---
+    const fxrpAddress = process.env.FXRP_TOKEN_ADDRESS;
+    if (fxrpAddress) {
+        yield* Effect.sleep(Duration.seconds(1));
+        yield* log.step(4, "Paying with FXRP (FAssets Token)");
+        yield* log.info("Demonstrating ERC-20 token payment with synthetic XRP...\n");
+        yield* log.info(`FXRP token: ${chalk.bold(fxrpAddress)}`);
+
+        const tokenResult = yield* agentFetchWithToken(
+            GATEWAY_URL,
+            "joke-api",
+            "/joke?category=crypto",
+            fxrpAddress,
+            { maxPriceUnits: BigInt("1000000000000000000"), timeout: 300 }
+        );
+
+        yield* Effect.sleep(Duration.millis(500));
+        yield* log.divider();
+
+        if (tokenResult.hashesMatch) {
+            yield* log.success("Hashes match — FXRP funds released to provider!");
+        } else {
+            yield* log.error("Hash mismatch — dispute raised!");
+        }
+
+        yield* log.divider();
+        yield* Console.log("");
+        yield* log.data("Data received (paid with FXRP):");
+        yield* Console.log(chalk.white("  " + JSON.stringify(tokenResult.data, null, 2).replace(/\n/g, "\n  ")));
+
+        yield* Console.log("");
+        yield* log.hash(`Escrow ID:  #${tokenResult.escrowId}`);
+        yield* log.hash(`Payment:    FXRP token`);
+        yield* log.hash(`Data hash:  ${tokenResult.dataHash}`);
+        yield* log.hash(`Match:      ${tokenResult.hashesMatch ? chalk.green("YES") : chalk.red("NO")}`);
+    } else {
+        yield* Console.log("");
+        yield* log.info("Set FXRP_TOKEN_ADDRESS in .env to demo FAssets token payment flow");
+    }
+
     // --- Final Summary ---
     yield* Console.log("");
     yield* log.header("Demo Complete!");
-    yield* log.success(`Escrow #${result.escrowId} settled on-chain`);
+    yield* log.success(`Escrow #${result.escrowId} settled on-chain (native C2FLR)`);
+    if (fxrpAddress) {
+        yield* log.success("FAssets (FXRP) token payment also demonstrated!");
+    }
     yield* log.info(`View on explorer: https://coston-explorer.flare.network/address/${process.env.ESCROW_CONTRACT_ADDRESS}`);
     yield* Console.log("");
 });

@@ -1,5 +1,5 @@
 import { Context, Effect } from "effect";
-import type { Escrow, ApiListing, CreateEscrowParams } from "./types.js";
+import type { Escrow, ApiListing, CreateEscrowParams, CreateTokenEscrowParams } from "./types.js";
 import type {
   ContractCallFailed,
   EscrowNotFound,
@@ -12,6 +12,9 @@ export class EscrowContract extends Context.Tag("EscrowContract")<
   {
     createEscrow: (
       params: CreateEscrowParams
+    ) => Effect.Effect<number, ContractCallFailed>;
+    createEscrowWithToken: (
+      params: CreateTokenEscrowParams
     ) => Effect.Effect<number, ContractCallFailed>;
     confirmDelivery: (
       escrowId: number,

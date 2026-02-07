@@ -50,6 +50,17 @@ export const makeProxyRouter = (layer: ProxyLayer) => {
 
             // If no escrow ID, return 402
             if (!escrowIdHeader) {
+                // Build accepted tokens list from env (FXRP_TOKEN_ADDRESS if set)
+                const acceptedTokens: { symbol: string; address: string; priceUnits: string }[] = [];
+                const fxrpAddress = process.env.FXRP_TOKEN_ADDRESS;
+                if (fxrpAddress) {
+                    acceptedTokens.push({
+                        symbol: "FXRP",
+                        address: fxrpAddress,
+                        priceUnits: priceWei,
+                    });
+                }
+
                 return {
                     status: 402 as const,
                     body: {
@@ -61,7 +72,9 @@ export const makeProxyRouter = (layer: ProxyLayer) => {
                         contractAddress: process.env.ESCROW_CONTRACT_ADDRESS || "",
                         chainId: 16,
                         instructions:
-                            "Create escrow with createEscrow(provider, endpoint, timeout) and retry with X-Escrow-Id header",
+                            "Create escrow with createEscrow(provider, endpoint, timeout) and retry with X-Escrow-Id header. " +
+                            "For token payments, use createEscrowWithToken(provider, endpoint, timeout, token, amount) after approving the contract.",
+                        ...(acceptedTokens.length > 0 ? { acceptedTokens } : {}),
                     },
                     headers: undefined as Record<string, string> | undefined,
                 };

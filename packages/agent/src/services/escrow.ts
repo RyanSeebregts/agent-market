@@ -5,9 +5,10 @@ import {
   ContractCallFailed,
   EscrowNotFound,
   ESCROW_ABI,
+  ERC20_ABI,
   EscrowState,
 } from "@flaregate/shared";
-import type { Escrow, CreateEscrowParams } from "@flaregate/shared";
+import type { Escrow, CreateEscrowParams, CreateTokenEscrowParams } from "@flaregate/shared";
 
 export const makeAgentEscrowLive = (privateKey: string, rpcUrl: string, contractAddress: string) => {
   const provider = new JsonRpcProvider(rpcUrl);
@@ -39,6 +40,40 @@ export const makeAgentEscrowLive = (privateKey: string, rpcUrl: string, contract
         catch: (error) =>
           new ContractCallFailed({
             method: "createEscrow",
+            reason: String(error),
+          }),
+      }),
+
+    createEscrowWithToken: (params: CreateTokenEscrowParams) =>
+      Effect.tryPromise({
+        try: async () => {
+          // Approve the escrow contract to spend tokens
+          const tokenContract = new Contract(params.token, ERC20_ABI, wallet);
+          const approveTx = await tokenContract.approve(contractAddress, params.amount);
+          await approveTx.wait();
+
+          const tx = await contract.createEscrowWithToken(
+            params.provider,
+            params.endpoint,
+            params.timeout,
+            params.token,
+            params.amount
+          );
+          const receipt = await tx.wait();
+          const event = receipt.logs
+            .map((log: any) => {
+              try {
+                return contract.interface.parseLog(log);
+              } catch {
+                return null;
+              }
+            })
+            .find((e: any) => e?.name === "TokenEscrowCreated");
+          return Number(event!.args.escrowId);
+        },
+        catch: (error) =>
+          new ContractCallFailed({
+            method: "createEscrowWithToken",
             reason: String(error),
           }),
       }),
@@ -88,6 +123,7 @@ export const makeAgentEscrowLive = (privateKey: string, rpcUrl: string, contract
             agent: e.agent,
             provider: e.provider,
             amount: e.amount,
+            token: e.token,
             endpoint: e.endpoint,
             deliveryHash: e.deliveryHash,
             receiptHash: e.receiptHash,

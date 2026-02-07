@@ -12,6 +12,7 @@ export interface Escrow {
   agent: string;
   provider: string;
   amount: bigint;
+  token: string;        // address(0) = native C2FLR, otherwise ERC-20 (e.g. FXRP)
   endpoint: string;
   deliveryHash: string;
   receiptHash: string;
@@ -44,6 +45,14 @@ export interface CreateEscrowParams {
   value: bigint;
 }
 
+export interface CreateTokenEscrowParams {
+  provider: string;
+  endpoint: string;
+  timeout: number;
+  token: string;
+  amount: bigint;
+}
+
 export interface PaymentInfo {
   error: string;
   price: string;
@@ -53,4 +62,6 @@ export interface PaymentInfo {
   contractAddress: string;
   chainId: number;
   instructions: string;
+  /** Accepted ERC-20 tokens for payment (e.g. FXRP). Empty = native only. */
+  acceptedTokens?: { symbol: string; address: string; priceUnits: string }[];
 }

@@ -50,13 +50,57 @@ async function main() {
         console.log("Copied ABI to packages/shared/src/abi.json");
     }
 
+    // --- Deploy MockFXRP token ---
+    console.log("\nDeploying MockFXRP (FAssets demo token)...");
+    const MockFXRP = await ethers.getContractFactory("MockFXRP");
+    const fxrp = await MockFXRP.deploy();
+    await fxrp.waitForDeployment();
+
+    const fxrpAddress = await fxrp.getAddress();
+    console.log("MockFXRP deployed to:", fxrpAddress);
+
+    // Whitelist FXRP on the escrow contract
+    const allowTx = await escrow.setAllowedToken(fxrpAddress, true);
+    await allowTx.wait();
+    console.log("FXRP whitelisted on escrow contract");
+
+    // Mint FXRP to the agent wallet if AGENT_PRIVATE_KEY is set
+    const agentPrivateKey = process.env.AGENT_PRIVATE_KEY;
+    if (agentPrivateKey) {
+        const agentWallet = new ethers.Wallet(agentPrivateKey);
+        const mintAmount = ethers.parseEther("10000"); // 10,000 FXRP
+        const mintTx = await fxrp.mint(agentWallet.address, mintAmount);
+        await mintTx.wait();
+        console.log(`Minted ${ethers.formatEther(mintAmount)} FXRP to agent ${agentWallet.address}`);
+    }
+
+    // Update .env with FXRP address
+    if (fs.existsSync(envPath)) {
+        let envContent = fs.readFileSync(envPath, "utf-8");
+        if (envContent.includes("FXRP_TOKEN_ADDRESS=")) {
+            envContent = envContent.replace(
+                /FXRP_TOKEN_ADDRESS=.*/,
+                `FXRP_TOKEN_ADDRESS=${fxrpAddress}`
+            );
+        } else {
+            envContent += `\nFXRP_TOKEN_ADDRESS=${fxrpAddress}\n`;
+        }
+        fs.writeFileSync(envPath, envContent);
+        console.log("Updated .env with FXRP_TOKEN_ADDRESS");
+    }
+
     console.log("\n--- Deployment Summary ---");
-    console.log("Contract:", contractAddress);
+    console.log("Escrow Contract:", contractAddress);
+    console.log("MockFXRP Token:", fxrpAddress);
     console.log("Network:", (await ethers.provider.getNetwork()).name);
     console.log("Chain ID:", (await ethers.provider.getNetwork()).chainId.toString());
     console.log(
-        "Explorer:",
+        "Explorer (Escrow):",
         `https://coston-explorer.flare.network/address/${contractAddress}`
+    );
+    console.log(
+        "Explorer (FXRP):",
+        `https://coston-explorer.flare.network/address/${fxrpAddress}`
     );
 }
 

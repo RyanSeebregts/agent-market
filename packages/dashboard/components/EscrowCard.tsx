@@ -3,7 +3,7 @@
 import { formatEther } from "ethers";
 import { StatusBadge } from "./StatusBadge";
 import type { EscrowData } from "@/lib/contract";
-import { EXPLORER_URL } from "@/lib/contract";
+import { EXPLORER_URL, isNativePayment } from "@/lib/contract";
 
 function truncate(addr: string) {
   if (!addr || addr === "0x" + "0".repeat(64)) return "—";
@@ -42,8 +42,13 @@ export function EscrowCard({ escrow }: { escrow: EscrowData }) {
         <div>
           <span className="text-xs text-gray-500 block">Amount</span>
           <span className="text-sm text-amber-400 font-semibold">
-            {formatEther(escrow.amount)} C2FLR
+            {formatEther(escrow.amount)} {isNativePayment(escrow) ? "C2FLR" : "FXRP"}
           </span>
+          {!isNativePayment(escrow) && (
+            <span className="text-xs text-purple-400 block mt-0.5">
+              Token: {truncate(escrow.token)}
+            </span>
+          )}
         </div>
         <div>
           <span className="text-xs text-gray-500 block">Endpoint</span>
