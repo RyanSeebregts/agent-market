@@ -207,7 +207,7 @@ Use `@effect/schema` for runtime validation of API responses, escrow data, and r
 ### 1. Smart Contract (`contracts/FlareGateEscrow.sol`)
 
 **Language:** Solidity ^0.8.19
-**Network:** Flare coston Testnet (Chain ID: 114, RPC: https://coston-api.flare.network/ext/C/rpc)
+**Network:** Flare Coston2 Testnet (Chain ID: 114, RPC: https://coston2-api.flare.network/ext/C/rpc)
 **Framework:** Hardhat
 
 #### Data Structures
@@ -569,7 +569,7 @@ A minimal frontend to visualize the marketplace and escrow lifecycle. This is a 
 - Flat, colorful, pastel status badges — not corporate
 - Quirky touches: animated dots for "pending" states, subtle pulse on new events
 - shadcn/ui components for cards, badges, tables
-- Transaction hashes link to coston explorer (`https://coston-explorer.flare.network/tx/{hash}`)
+- Transaction hashes link to coston explorer (`https://coston2-explorer.flare.network/tx/{hash}`)
 - Keep it to 3 pages max
 
 #### Pages
@@ -628,9 +628,9 @@ export const listenForEvents = (callback: (event: any) => void) => {
 
 ```bash
 NEXT_PUBLIC_GATEWAY_URL=http://localhost:3000
-NEXT_PUBLIC_RPC_URL=https://coston-api.flare.network/ext/C/rpc
+NEXT_PUBLIC_RPC_URL=https://coston2-api.flare.network/ext/C/rpc
 NEXT_PUBLIC_ESCROW_CONTRACT_ADDRESS=0x...
-NEXT_PUBLIC_EXPLORER_URL=https://coston-explorer.flare.network
+NEXT_PUBLIC_EXPLORER_URL=https://coston2-explorer.flare.network
 ```
 
 #### Notes for Claude Code
@@ -746,7 +746,7 @@ flaregate/
   "scripts": {
     "build": "npm run build --workspaces",
     "build:contracts": "cd contracts && npx hardhat compile",
-    "deploy": "cd contracts && npx hardhat run scripts/deploy.ts --network coston",
+    "deploy": "cd contracts && npx hardhat run scripts/deploy.ts --network coston2",
     "gateway": "npm run start --workspace=packages/gateway",
     "dashboard": "npm run dev --workspace=packages/dashboard",
     "demo": "npm run demo --workspace=packages/agent",
@@ -761,9 +761,9 @@ flaregate/
 
 ```bash
 # Network
-RPC_URL=https://coston-api.flare.network/ext/C/rpc
+RPC_URL=https://coston2-api.flare.network/ext/C/rpc
 CHAIN_ID=114
-EXPLORER_URL=https://coston-explorer.flare.network
+EXPLORER_URL=https://coston2-explorer.flare.network
 
 # Contract (filled after deployment)
 ESCROW_CONTRACT_ADDRESS=
@@ -778,9 +778,9 @@ AGENT_PRIVATE_KEY=            # Demo agent's wallet private key
 # Dashboard
 DASHBOARD_PORT=3001
 NEXT_PUBLIC_GATEWAY_URL=http://localhost:3000
-NEXT_PUBLIC_RPC_URL=https://coston-api.flare.network/ext/C/rpc
+NEXT_PUBLIC_RPC_URL=https://coston2-api.flare.network/ext/C/rpc
 NEXT_PUBLIC_ESCROW_CONTRACT_ADDRESS=
-NEXT_PUBLIC_EXPLORER_URL=https://coston-explorer.flare.network
+NEXT_PUBLIC_EXPLORER_URL=https://coston2-explorer.flare.network
 
 # Platform fee recipient
 FEE_RECIPIENT=                # Address to receive platform fees

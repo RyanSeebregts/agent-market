@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { ethers } from "hardhat";
-import { FlareGateEscrow } from "../typechain-types";
+import { FlareGateEscrow, MockFXRP } from "../typechain-types";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 import { time } from "@nomicfoundation/hardhat-network-helpers";
 
@@ -35,6 +35,7 @@ describe("FlareGateEscrow", function () {
       expect(e.agent).to.equal(agent.address);
       expect(e.provider).to.equal(provider.address);
       expect(e.amount).to.equal(PRICE);
+      expect(e.token).to.equal(ethers.ZeroAddress); // native C2FLR
       expect(e.endpoint).to.equal(ENDPOINT);
       expect(e.state).to.equal(0); // Created
       expect(e.timeout).to.equal(TIMEOUT);
@@ -320,6 +321,221 @@ describe("FlareGateEscrow", function () {
           value: PRICE,
         })
       ).to.not.be.reverted;
+    });
+  });
+
+  describe("ERC-20 Token Escrow (FAssets / FXRP)", function () {
+    let fxrp: MockFXRP;
+    const TOKEN_AMOUNT = ethers.parseEther("100"); // 100 FXRP
+
+    beforeEach(async function () {
+      // Deploy mock FXRP
+      const MockFXRP = await ethers.getContractFactory("MockFXRP");
+      fxrp = await MockFXRP.deploy();
+      await fxrp.waitForDeployment();
+
+      // Whitelist FXRP on the escrow contract
+      await escrow.connect(owner).setAllowedToken(await fxrp.getAddress(), true);
+
+      // Mint tokens to agent
+      await fxrp.mint(agent.address, ethers.parseEther("10000"));
+    });
+
+    describe("setAllowedToken", function () {
+      it("should allow owner to whitelist a token", async function () {
+        const addr = await fxrp.getAddress();
+        expect(await escrow.allowedTokens(addr)).to.equal(true);
+      });
+
+      it("should emit TokenAllowed event", async function () {
+        const addr = await fxrp.getAddress();
+        // Disallow and re-allow to test event
+        await expect(escrow.connect(owner).setAllowedToken(addr, false))
+          .to.emit(escrow, "TokenAllowed")
+          .withArgs(addr, false);
+      });
+
+      it("should reject non-owner", async function () {
+        const addr = await fxrp.getAddress();
+        await expect(
+          escrow.connect(agent).setAllowedToken(addr, true)
+        ).to.be.revertedWith("Not owner");
+      });
+
+      it("should reject zero address token", async function () {
+        await expect(
+          escrow.connect(owner).setAllowedToken(ethers.ZeroAddress, true)
+        ).to.be.revertedWith("Invalid token address");
+      });
+    });
+
+    describe("createEscrowWithToken", function () {
+      it("should create a token escrow with correct parameters", async function () {
+        const fxrpAddr = await fxrp.getAddress();
+
+        // Approve escrow contract
+        await fxrp.connect(agent).approve(await escrow.getAddress(), TOKEN_AMOUNT);
+
+        const tx = await escrow
+          .connect(agent)
+          .createEscrowWithToken(provider.address, ENDPOINT, TIMEOUT, fxrpAddr, TOKEN_AMOUNT);
+        await tx.wait();
+
+        const e = await escrow.getEscrow(1);
+        expect(e.id).to.equal(1);
+        expect(e.agent).to.equal(agent.address);
+        expect(e.provider).to.equal(provider.address);
+        expect(e.amount).to.equal(TOKEN_AMOUNT);
+        expect(e.token).to.equal(fxrpAddr);
+        expect(e.state).to.equal(0); // Created
+
+        // Verify tokens transferred to contract
+        expect(await fxrp.balanceOf(await escrow.getAddress())).to.equal(TOKEN_AMOUNT);
+      });
+
+      it("should emit TokenEscrowCreated event", async function () {
+        const fxrpAddr = await fxrp.getAddress();
+        await fxrp.connect(agent).approve(await escrow.getAddress(), TOKEN_AMOUNT);
+
+        await expect(
+          escrow.connect(agent).createEscrowWithToken(provider.address, ENDPOINT, TIMEOUT, fxrpAddr, TOKEN_AMOUNT)
+        )
+          .to.emit(escrow, "TokenEscrowCreated")
+          .withArgs(1, agent.address, provider.address, TOKEN_AMOUNT, fxrpAddr, ENDPOINT);
+      });
+
+      it("should reject non-whitelisted token", async function () {
+        // Deploy a second token that is NOT whitelisted
+        const MockFXRP2 = await ethers.getContractFactory("MockFXRP");
+        const badToken = await MockFXRP2.deploy();
+        await badToken.waitForDeployment();
+        const badAddr = await badToken.getAddress();
+
+        await badToken.mint(agent.address, TOKEN_AMOUNT);
+        await badToken.connect(agent).approve(await escrow.getAddress(), TOKEN_AMOUNT);
+
+        await expect(
+          escrow.connect(agent).createEscrowWithToken(provider.address, ENDPOINT, TIMEOUT, badAddr, TOKEN_AMOUNT)
+        ).to.be.revertedWith("Token not allowed");
+      });
+
+      it("should reject zero amount", async function () {
+        const fxrpAddr = await fxrp.getAddress();
+        await expect(
+          escrow.connect(agent).createEscrowWithToken(provider.address, ENDPOINT, TIMEOUT, fxrpAddr, 0)
+        ).to.be.revertedWith("Must deposit funds");
+      });
+    });
+
+    describe("Token happy path: create → deliver → confirm → release", function () {
+      it("should complete full lifecycle and release tokens", async function () {
+        const fxrpAddr = await fxrp.getAddress();
+
+        // Create token escrow
+        await fxrp.connect(agent).approve(await escrow.getAddress(), TOKEN_AMOUNT);
+        await escrow.connect(agent).createEscrowWithToken(
+          provider.address, ENDPOINT, TIMEOUT, fxrpAddr, TOKEN_AMOUNT
+        );
+
+        const dataHash = ethers.keccak256(ethers.toUtf8Bytes("token data"));
+
+        // Provider confirms delivery
+        await escrow.connect(provider).confirmDelivery(1, dataHash);
+
+        // Track balances before confirmation
+        const providerBalBefore = await fxrp.balanceOf(provider.address);
+        const feeBalBefore = await fxrp.balanceOf(feeRecipient.address);
+
+        // Agent confirms receipt with matching hash
+        await escrow.connect(agent).confirmReceived(1, dataHash);
+
+        const e = await escrow.getEscrow(1);
+        expect(e.state).to.equal(2); // Completed
+
+        // Verify token balances (99% to provider, 1% fee)
+        const expectedFee = TOKEN_AMOUNT / 100n;
+        const expectedPayout = TOKEN_AMOUNT - expectedFee;
+
+        expect(await fxrp.balanceOf(provider.address) - providerBalBefore).to.equal(expectedPayout);
+        expect(await fxrp.balanceOf(feeRecipient.address) - feeBalBefore).to.equal(expectedFee);
+
+        // Escrow contract should have 0 remaining balance
+        expect(await fxrp.balanceOf(await escrow.getAddress())).to.equal(0);
+      });
+    });
+
+    describe("Token refund", function () {
+      it("should refund tokens to agent after timeout", async function () {
+        const fxrpAddr = await fxrp.getAddress();
+
+        await fxrp.connect(agent).approve(await escrow.getAddress(), TOKEN_AMOUNT);
+        await escrow.connect(agent).createEscrowWithToken(
+          provider.address, ENDPOINT, TIMEOUT, fxrpAddr, TOKEN_AMOUNT
+        );
+
+        const agentBalBefore = await fxrp.balanceOf(agent.address);
+
+        // Fast-forward past timeout
+        await time.increase(TIMEOUT + 1);
+
+        await escrow.connect(agent).refund(1);
+
+        const agentBalAfter = await fxrp.balanceOf(agent.address);
+        expect(agentBalAfter - agentBalBefore).to.equal(TOKEN_AMOUNT);
+
+        const e = await escrow.getEscrow(1);
+        expect(e.state).to.equal(4); // Refunded
+      });
+    });
+
+    describe("Token timeout claim", function () {
+      it("should release tokens to provider after timeout", async function () {
+        const fxrpAddr = await fxrp.getAddress();
+
+        await fxrp.connect(agent).approve(await escrow.getAddress(), TOKEN_AMOUNT);
+        await escrow.connect(agent).createEscrowWithToken(
+          provider.address, ENDPOINT, TIMEOUT, fxrpAddr, TOKEN_AMOUNT
+        );
+
+        const dataHash = ethers.keccak256(ethers.toUtf8Bytes("data"));
+        await escrow.connect(provider).confirmDelivery(1, dataHash);
+
+        const providerBalBefore = await fxrp.balanceOf(provider.address);
+
+        await time.increase(TIMEOUT + 1);
+        await escrow.connect(provider).claimTimeout(1);
+
+        const expectedFee = TOKEN_AMOUNT / 100n;
+        const expectedPayout = TOKEN_AMOUNT - expectedFee;
+
+        expect(await fxrp.balanceOf(provider.address) - providerBalBefore).to.equal(expectedPayout);
+
+        const e = await escrow.getEscrow(1);
+        expect(e.state).to.equal(5); // Claimed
+      });
+    });
+
+    describe("Token dispute", function () {
+      it("should raise dispute when hashes don't match (tokens stay in contract)", async function () {
+        const fxrpAddr = await fxrp.getAddress();
+
+        await fxrp.connect(agent).approve(await escrow.getAddress(), TOKEN_AMOUNT);
+        await escrow.connect(agent).createEscrowWithToken(
+          provider.address, ENDPOINT, TIMEOUT, fxrpAddr, TOKEN_AMOUNT
+        );
+
+        const deliveryHash = ethers.keccak256(ethers.toUtf8Bytes("original"));
+        const receiptHash = ethers.keccak256(ethers.toUtf8Bytes("tampered"));
+
+        await escrow.connect(provider).confirmDelivery(1, deliveryHash);
+        await escrow.connect(agent).confirmReceived(1, receiptHash);
+
+        const e = await escrow.getEscrow(1);
+        expect(e.state).to.equal(3); // Disputed
+
+        // Tokens should still be held by the contract
+        expect(await fxrp.balanceOf(await escrow.getAddress())).to.equal(TOKEN_AMOUNT);
+      });
     });
   });
 });

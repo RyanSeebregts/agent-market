@@ -2,7 +2,7 @@
 
 **Escrow-based API Marketplace for AI Agents on Flare Network**
 
-AI agents discover, pay for, and consume APIs autonomously using HTTP 402 responses, smart contract escrow on Flare's coston testnet, and two-party hash attestation to verify data delivery before releasing funds.
+AI agents discover, pay for, and consume APIs autonomously using HTTP 402 responses, smart contract escrow on Flare's Coston2 testnet, and two-party hash attestation to verify data delivery before releasing funds.
 
 ## Architecture
 
@@ -14,7 +14,7 @@ AI Agent  ──HTTP──>  FlareGate Gateway  ──Forward──>  Target API
    │  confirmReceived()   │  confirmDelivery()
    ▼                      ▼
    ┌─────────────────────────────────────┐
-   │   Escrow Smart Contract (coston)   │
+   │  Escrow Smart Contract (Coston2)    │
    │   create → deliver → confirm/dispute│
    └─────────────────────────────────────┘
 ```
@@ -24,7 +24,7 @@ AI Agent  ──HTTP──>  FlareGate Gateway  ──Forward──>  Target API
 ### Prerequisites
 
 - Node.js >= 18
-- Testnet C2FLR from the [coston Faucet](https://faucet.flare.network/coston)
+- Testnet C2FLR from the [Coston2 Faucet](https://faucet.flare.network/coston2)
 
 ### Setup
 
@@ -35,7 +35,7 @@ AI Agent  ──HTTP──>  FlareGate Gateway  ──Forward──>  Target API
 # Fund the generated wallets with testnet C2FLR
 # Addresses are printed by setup.sh
 
-# Deploy the escrow contract to coston
+# Deploy the escrow contract to Coston2
 npm run deploy
 
 # Run the full demo (gateway + dashboard + agent)
@@ -73,7 +73,7 @@ npm run demo
 - **Smart Contract**: Solidity 0.8.20, Hardhat, OpenZeppelin
 - **Backend**: Effect-TS, Express, ethers.js v6
 - **Frontend**: Next.js 14, Tailwind CSS
-- **Network**: Flare coston Testnet (Chain ID: 16)
+- **Network**: Flare Coston2 Testnet (Chain ID: 114)
 
 ## How It Works
 

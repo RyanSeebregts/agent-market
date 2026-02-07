@@ -16,6 +16,12 @@ export const ApiListingSchema = S.Struct({
   endpoints: S.Array(ApiEndpointSchema),
 });
 
+export const AcceptedTokenSchema = S.Struct({
+  symbol: S.String,
+  address: S.String,
+  priceUnits: S.String,
+});
+
 export const PaymentInfoSchema = S.Struct({
   error: S.String,
   price: S.String,
@@ -25,6 +31,7 @@ export const PaymentInfoSchema = S.Struct({
   contractAddress: S.String,
   chainId: S.Number,
   instructions: S.String,
+  acceptedTokens: S.optional(S.Array(AcceptedTokenSchema)),
 });
 
 export const EscrowOnChainSchema = S.Struct({
@@ -32,6 +39,7 @@ export const EscrowOnChainSchema = S.Struct({
   agent: S.String,
   provider: S.String,
   amount: S.BigIntFromSelf,
+  token: S.String,
   endpoint: S.String,
   deliveryHash: S.String,
   receiptHash: S.String,

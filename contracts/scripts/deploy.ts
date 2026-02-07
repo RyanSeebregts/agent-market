@@ -50,13 +50,28 @@ async function main() {
         console.log("Copied ABI to packages/shared/src/abi.json");
     }
 
+    // --- Whitelist real FXRP (FAssets) on Coston2 ---
+    const fxrpAddress = process.env.FXRP_TOKEN_ADDRESS || "0x0b6A3645c240605887a5532109323A3E12273dc7";
+    console.log("\nWhitelisting real FXRP (FAssets) on escrow contract...");
+    console.log("FXRP address:", fxrpAddress);
+
+    const allowTx = await escrow.setAllowedToken(fxrpAddress, true);
+    await allowTx.wait();
+    console.log("FXRP whitelisted on escrow contract");
+    console.log("To obtain FXRP, mint via the FAssets system: https://dev.flare.network/fassets/minting");
+
     console.log("\n--- Deployment Summary ---");
-    console.log("Contract:", contractAddress);
+    console.log("Escrow Contract:", contractAddress);
+    console.log("FXRP Token (FAssets):", fxrpAddress);
     console.log("Network:", (await ethers.provider.getNetwork()).name);
     console.log("Chain ID:", (await ethers.provider.getNetwork()).chainId.toString());
     console.log(
-        "Explorer:",
-        `https://coston-explorer.flare.network/address/${contractAddress}`
+        "Explorer (Escrow):",
+        `https://coston2-explorer.flare.network/address/${contractAddress}`
+    );
+    console.log(
+        "Explorer (FXRP):",
+        `https://coston2-explorer.flare.network/address/${fxrpAddress}`
     );
 }
 

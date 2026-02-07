@@ -43,3 +43,7 @@ export class ApiNotFound extends Data.TaggedError("ApiNotFound")<{
 export class RegistryError extends Data.TaggedError("RegistryError")<{
   reason: string;
 }> {}
+
+export class TokenNotAllowed extends Data.TaggedError("TokenNotAllowed")<{
+  token: string;
+}> {}

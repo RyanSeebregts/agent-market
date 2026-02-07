@@ -14,7 +14,7 @@ interface EventItem {
     timestamp: number;
 }
 
-const RPC_URL = process.env.NEXT_PUBLIC_RPC_URL || "https://coston-api.flare.network/ext/C/rpc";
+const RPC_URL = process.env.NEXT_PUBLIC_RPC_URL || "https://coston2-api.flare.network/ext/C/rpc";
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_ESCROW_CONTRACT_ADDRESS || "";
 
 const ESCROW_ABI = [

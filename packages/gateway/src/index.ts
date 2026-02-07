@@ -32,7 +32,7 @@ app.get("/health", (_req, res) => {
 
 // Check required env vars
 const GATEWAY_PRIVATE_KEY = process.env.GATEWAY_PRIVATE_KEY;
-const RPC_URL = process.env.RPC_URL || "https://coston-api.flare.network/ext/C/rpc";
+const RPC_URL = process.env.RPC_URL || "https://coston2-api.flare.network/ext/C/rpc";
 const ESCROW_CONTRACT_ADDRESS = process.env.ESCROW_CONTRACT_ADDRESS;
 const PORT = parseInt(process.env.GATEWAY_PORT || "3000", 10);
 
@@ -54,7 +54,7 @@ console.log(`\n--- FlareGate Gateway ---`);
 console.log(`Gateway wallet: ${gatewayWallet.address}`);
 console.log(`Contract:       ${ESCROW_CONTRACT_ADDRESS}`);
 console.log(`RPC:            ${RPC_URL}`);
-console.log(`Network:        coston Testnet (Chain ID: 16)`);
+console.log(`Network:        Coston2 Testnet (Chain ID: 114)`);
 
 // Update registry provider addresses to use gateway wallet
 import * as fs from "fs";
@@ -63,7 +63,7 @@ try {
     const registry = JSON.parse(fs.readFileSync(registryPath, "utf-8"));
     let updated = false;
     for (const listing of registry) {
-        if (!listing.providerAddress || listing.providerAddress === "") {
+        if (listing.providerAddress !== gatewayWallet.address) {
             listing.providerAddress = gatewayWallet.address;
             updated = true;
         }

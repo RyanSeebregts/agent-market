@@ -3,7 +3,7 @@
     "id": "weather-api",
     "name": "Weather API",
     "description": "Get current weather data for any city worldwide",
-    "providerAddress": "0xfC1b738EA3871719f131D308389ee723c865E04a",
+    "providerAddress": "0xcDf0485b1796f7D8e5E109AF57DA77572a27a910",
     "baseUrl": "http://localhost:3000/mock",
     "endpoints": [
       {
@@ -18,7 +18,7 @@
     "id": "joke-api",
     "name": "Joke API",
     "description": "Get random jokes by category — programming, crypto, or general",
-    "providerAddress": "0xfC1b738EA3871719f131D308389ee723c865E04a",
+    "providerAddress": "0xcDf0485b1796f7D8e5E109AF57DA77572a27a910",
     "baseUrl": "http://localhost:3000/mock",
     "endpoints": [
       {
@@ -33,7 +33,7 @@
     "id": "price-api",
     "name": "Price Feed API",
     "description": "Get cryptocurrency price data with 24h change and volume",
-    "providerAddress": "0xfC1b738EA3871719f131D308389ee723c865E04a",
+    "providerAddress": "0xcDf0485b1796f7D8e5E109AF57DA77572a27a910",
     "baseUrl": "http://localhost:3000/mock",
     "endpoints": [
       {
