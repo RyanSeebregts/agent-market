@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { Effect } from "effect";
 import type { Layer } from "effect";
+import { Contract, JsonRpcProvider } from "ethers";
 import {
     ApiRegistry,
     EscrowContract,
@@ -8,6 +9,8 @@ import {
     hashResponseData,
     EscrowState,
     ApiCallFailed,
+    ERC20_ABI,
+    ZERO_ADDRESS,
 } from "@flaregate/shared";
 
 type ProxyLayer = Layer.Layer<ApiRegistry | EscrowContract | GatewayWallet>;
@@ -54,10 +57,23 @@ export const makeProxyRouter = (layer: ProxyLayer) => {
                 const acceptedTokens: { symbol: string; address: string; priceUnits: string }[] = [];
                 const fxrpAddress = process.env.FXRP_TOKEN_ADDRESS;
                 if (fxrpAddress) {
+                    // Query token decimals to convert from 18-decimal native price
+                    const rpcUrl = process.env.RPC_URL || "https://coston2-api.flare.network/ext/C/rpc";
+                    const tokenDecimals = yield* Effect.tryPromise({
+                        try: async () => {
+                            const provider = new JsonRpcProvider(rpcUrl);
+                            const token = new Contract(fxrpAddress, ERC20_ABI, provider);
+                            return Number(await token.decimals());
+                        },
+                        catch: () => new ApiCallFailed({ url: fxrpAddress, status: 0, body: "Failed to query token decimals" }),
+                    });
+                    // Scale price from 18 decimals (native) to token decimals
+                    const nativePrice = BigInt(priceWei);
+                    const scaledPrice = nativePrice / (10n ** BigInt(18 - tokenDecimals));
                     acceptedTokens.push({
                         symbol: "FXRP",
                         address: fxrpAddress,
-                        priceUnits: priceWei,
+                        priceUnits: scaledPrice.toString(),
                     });
                 }
 
@@ -70,7 +86,7 @@ export const makeProxyRouter = (layer: ProxyLayer) => {
                         provider: listing.providerAddress || wallet.address,
                         endpoint: subPath,
                         contractAddress: process.env.ESCROW_CONTRACT_ADDRESS || "",
-                        chainId: 16,
+                        chainId: 114,
                         instructions:
                             "Create escrow with createEscrow(provider, endpoint, timeout) and retry with X-Escrow-Id header. " +
                             "For token payments, use createEscrowWithToken(provider, endpoint, timeout, token, amount) after approving the contract.",
@@ -92,11 +108,26 @@ export const makeProxyRouter = (layer: ProxyLayer) => {
                 };
             }
 
-            if (BigInt(escrow.amount) < BigInt(priceWei)) {
+            // For token escrows, scale the required price to token decimals
+            let requiredAmount = BigInt(priceWei);
+            if (escrow.token && escrow.token !== ZERO_ADDRESS) {
+                const rpcUrl = process.env.RPC_URL || "https://coston2-api.flare.network/ext/C/rpc";
+                const tokenDecimals = yield* Effect.tryPromise({
+                    try: async () => {
+                        const provider = new JsonRpcProvider(rpcUrl);
+                        const token = new Contract(escrow.token, ERC20_ABI, provider);
+                        return Number(await token.decimals());
+                    },
+                    catch: () => new ApiCallFailed({ url: escrow.token, status: 0, body: "Failed to query token decimals" }),
+                });
+                requiredAmount = requiredAmount / (10n ** BigInt(18 - tokenDecimals));
+            }
+
+            if (BigInt(escrow.amount) < requiredAmount) {
                 return {
                     status: 400 as const,
                     body: {
-                        error: `Escrow amount insufficient. Required: ${priceWei}, deposited: ${escrow.amount}`,
+                        error: `Escrow amount insufficient. Required: ${requiredAmount}, deposited: ${escrow.amount}`,
                     },
                     headers: undefined as Record<string, string> | undefined,
                 };

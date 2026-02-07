@@ -17,7 +17,7 @@ const ESCROW_ABI = [
 
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 
-const RPC_URL = process.env.NEXT_PUBLIC_RPC_URL || "https://coston-api.flare.network/ext/C/rpc";
+const RPC_URL = process.env.NEXT_PUBLIC_RPC_URL || "https://coston2-api.flare.network/ext/C/rpc";
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_ESCROW_CONTRACT_ADDRESS || "";
 
 export const getProvider = () => new JsonRpcProvider(RPC_URL);
@@ -28,7 +28,7 @@ export const getContract = () => {
     return new Contract(CONTRACT_ADDRESS, ESCROW_ABI, provider);
 };
 
-export const EXPLORER_URL = process.env.NEXT_PUBLIC_EXPLORER_URL || "https://coston-explorer.flare.network";
+export const EXPLORER_URL = process.env.NEXT_PUBLIC_EXPLORER_URL || "https://coston2-explorer.flare.network";
 
 export interface EscrowData {
     id: number;

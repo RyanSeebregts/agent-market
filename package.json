@@ -9,7 +9,7 @@
         "build": "npm run build --workspaces --if-present",
         "build:shared": "npm run build --workspace=packages/shared",
         "build:contracts": "cd contracts && npx hardhat compile",
-        "deploy": "cd contracts && npx hardhat run scripts/deploy.ts --network coston",
+        "deploy": "cd contracts && npx hardhat run scripts/deploy.ts --network coston2",
         "gateway": "npm run start --workspace=packages/gateway",
         "dashboard": "npm run dev --workspace=packages/dashboard",
         "demo": "npm run demo --workspace=packages/agent",

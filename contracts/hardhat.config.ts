@@ -15,9 +15,9 @@ const config: HardhatUserConfig = {
         },
     },
     networks: {
-        coston: {
-            url: process.env.RPC_URL || "https://coston-api.flare.network/ext/C/rpc",
-            chainId: 16,
+        coston2: {
+            url: process.env.RPC_URL || "https://coston2-api.flare.network/ext/C/rpc",
+            chainId: 114,
             accounts: process.env.GATEWAY_PRIVATE_KEY
                 ? [process.env.GATEWAY_PRIVATE_KEY]
                 : [],

@@ -18,7 +18,7 @@ export default function RootLayout({
     children: React.ReactNode;
 }) {
     const contractAddress = process.env.NEXT_PUBLIC_ESCROW_CONTRACT_ADDRESS || "";
-    const explorerUrl = process.env.NEXT_PUBLIC_EXPLORER_URL || "https://coston-explorer.flare.network";
+    const explorerUrl = process.env.NEXT_PUBLIC_EXPLORER_URL || "https://coston2-explorer.flare.network";
 
     return (
         <html lang="en">
@@ -44,7 +44,7 @@ export default function RootLayout({
                         </div>
                         <div className="flex items-center gap-3">
                             <span className="text-xs bg-emerald-500/20 text-emerald-400 px-2 py-1 rounded-full">
-                                coston Testnet
+                                Coston2 Testnet
                             </span>
                             {contractAddress && (
                                 <a

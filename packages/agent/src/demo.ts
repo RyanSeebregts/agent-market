@@ -35,7 +35,7 @@ const demo = Effect.gen(function* () {
     yield* log.info(`Balance: ${chalk.bold(formatEther(balance))} C2FLR`);
 
     if (balance === 0n) {
-        yield* log.error("No C2FLR balance! Fund your wallet at: https://faucet.flare.network/coston");
+        yield* log.error("No C2FLR balance! Fund your wallet at: https://faucet.flare.network/coston2");
         return;
     }
 
@@ -165,13 +165,13 @@ const demo = Effect.gen(function* () {
     if (fxrpAddress) {
         yield* log.success("FAssets (FXRP) token payment also demonstrated!");
     }
-    yield* log.info(`View on explorer: https://coston-explorer.flare.network/address/${process.env.ESCROW_CONTRACT_ADDRESS}`);
+    yield* log.info(`View on explorer: https://coston2-explorer.flare.network/address/${process.env.ESCROW_CONTRACT_ADDRESS}`);
     yield* Console.log("");
 });
 
 // Validate env
 const AGENT_PRIVATE_KEY = process.env.AGENT_PRIVATE_KEY;
-const RPC_URL = process.env.RPC_URL || "https://coston-api.flare.network/ext/C/rpc";
+const RPC_URL = process.env.RPC_URL || "https://coston2-api.flare.network/ext/C/rpc";
 const ESCROW_CONTRACT_ADDRESS = process.env.ESCROW_CONTRACT_ADDRESS;
 
 if (!AGENT_PRIVATE_KEY) {
