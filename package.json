@@ -1,27 +1,18 @@
 {
-  "name": "agent-market",
-  "version": "0.1.0",
-  "private": true,
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "eslint"
-  },
-  "dependencies": {
-    "next": "16.1.6",
-    "react": "19.2.3",
-    "react-dom": "19.2.3"
-  },
-  "devDependencies": {
-    "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "babel-plugin-react-compiler": "1.0.0",
-    "eslint": "^9",
-    "eslint-config-next": "16.1.6",
-    "tailwindcss": "^4",
-    "typescript": "^5"
-  }
+    "name": "flaregate",
+    "private": true,
+    "workspaces": [
+        "packages/*",
+        "contracts"
+    ],
+    "scripts": {
+        "build": "npm run build --workspaces --if-present",
+        "build:shared": "npm run build --workspace=packages/shared",
+        "build:contracts": "cd contracts && npx hardhat compile",
+        "deploy": "cd contracts && npx hardhat run scripts/deploy.ts --network coston",
+        "gateway": "npm run start --workspace=packages/gateway",
+        "dashboard": "npm run dev --workspace=packages/dashboard",
+        "demo": "npm run demo --workspace=packages/agent",
+        "test:contracts": "cd contracts && npx hardhat test"
+    }
 }

@@ -1,0 +1,47 @@
+[
+  {
+    "id": "weather-api",
+    "name": "Weather API",
+    "description": "Get current weather data for any city worldwide",
+    "providerAddress": "0xfC1b738EA3871719f131D308389ee723c865E04a",
+    "baseUrl": "http://localhost:3000/mock",
+    "endpoints": [
+      {
+        "path": "/weather",
+        "method": "GET",
+        "priceWei": "100000000000000000",
+        "description": "Get current weather by city name (?city=London)"
+      }
+    ]
+  },
+  {
+    "id": "joke-api",
+    "name": "Joke API",
+    "description": "Get random jokes by category — programming, crypto, or general",
+    "providerAddress": "0xfC1b738EA3871719f131D308389ee723c865E04a",
+    "baseUrl": "http://localhost:3000/mock",
+    "endpoints": [
+      {
+        "path": "/joke",
+        "method": "GET",
+        "priceWei": "50000000000000000",
+        "description": "Get a random joke (?category=programming)"
+      }
+    ]
+  },
+  {
+    "id": "price-api",
+    "name": "Price Feed API",
+    "description": "Get cryptocurrency price data with 24h change and volume",
+    "providerAddress": "0xfC1b738EA3871719f131D308389ee723c865E04a",
+    "baseUrl": "http://localhost:3000/mock",
+    "endpoints": [
+      {
+        "path": "/price",
+        "method": "GET",
+        "priceWei": "75000000000000000",
+        "description": "Get token price (?symbol=FLR)"
+      }
+    ]
+  }
+]
