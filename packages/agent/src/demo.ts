@@ -6,7 +6,7 @@ import chalk from "chalk";
 
 dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 
-import { AgentWallet, EscrowContract, ZERO_ADDRESS } from "@flaregate/shared";
+import { AgentWallet, EscrowContract } from "@flaregate/shared";
 import { agentFetch, agentFetchWithToken, getCatalog } from "./sdk.js";
 import { makeLiveLayer } from "./layers.js";
 
@@ -199,4 +199,4 @@ const main = demo.pipe(
     )
 );
 
-Effect.runPromise(main).catch(console.error);
+Effect.runPromise(main as Effect.Effect<void, never, never>).catch(console.error);
