@@ -92,3 +92,24 @@ npm run test:contracts
 ```
 
 21 tests covering: happy path, hash mismatch disputes, timeout claims, refunds, access control, fee calculation, and pausable functionality.
+
+## Built on Flare
+
+Built on Coston2
+
+Uses the Fassets system with FXRP
+
+Demo link: https://www.youtube.com/watch?v=paqm1hrk25A&embeds_referring_euri=https%3A%2F%2Fdorahacks.io%2F&embeds_referring_origin=https%3A%2F%2Fdorahacks.io%2F&source_ve_path=Mjg2NjY
+
+Live Demo: http://139.59.190.78:3001/demo
+
+In order to run the code: 
+
+# Start the gateway (port 3000)
+npm run gateway
+
+# Start the dashboard (port 3001)
+npm run dashboard
+
+# Run the agent demo
+npm run demo
