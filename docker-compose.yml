@@ -1,0 +1,33 @@
+services:
+  gateway:
+    build:
+      context: .
+      dockerfile: packages/gateway/Dockerfile
+    ports:
+      - "${GATEWAY_PORT:-3000}:3000"
+    env_file: .env
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3000/health').then(r => { if (!r.ok) throw 1 })"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  dashboard:
+    build:
+      context: .
+      dockerfile: packages/dashboard/Dockerfile
+      args:
+        - NEXT_PUBLIC_GATEWAY_URL=${NEXT_PUBLIC_GATEWAY_URL:-http://localhost:3000}
+        - NEXT_PUBLIC_RPC_URL=${NEXT_PUBLIC_RPC_URL:-https://coston2-api.flare.network/ext/C/rpc}
+        - NEXT_PUBLIC_ESCROW_CONTRACT_ADDRESS=${NEXT_PUBLIC_ESCROW_CONTRACT_ADDRESS:-}
+        - NEXT_PUBLIC_EXPLORER_URL=${NEXT_PUBLIC_EXPLORER_URL:-https://coston2-explorer.flare.network}
+    ports:
+      - "${DASHBOARD_PORT:-3001}:3001"
+    depends_on:
+      gateway:
+        condition: service_healthy
+    restart: unless-stopped
