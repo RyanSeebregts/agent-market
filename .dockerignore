@@ -1,0 +1,17 @@
+node_modules/
+dist/
+.next/
+out/
+build/
+contracts/artifacts/
+contracts/cache/
+contracts/typechain-types/
+.env
+.env.local
+.git/
+.DS_Store
+*.pem
+*.tsbuildinfo
+npm-debug.log*
+yarn-debug.log*
+.vercel

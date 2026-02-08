@@ -22,6 +22,7 @@ if (existsSync(rootEnvPath)) {
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  output: "standalone",
   transpilePackages: ["@flaregate/shared"],
   env: publicEnv,
 };
