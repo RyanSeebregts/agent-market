@@ -15,8 +15,15 @@ const config: Config = {
           border: "#2a2a2a",
         },
       },
+      keyframes: {
+        slideIn: {
+          "0%": { opacity: "0", transform: "translateY(20px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
+      },
       animation: {
         pulse: "pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+        slideIn: "slideIn 0.4s ease-out forwards",
       },
     },
   },
