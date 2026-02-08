@@ -10,6 +10,7 @@ const NAV_LINKS = [
     { href: "/", label: "Catalog" },
     { href: "/escrows", label: "Escrows" },
     { href: "/live", label: "Live Feed" },
+    { href: "/demo", label: "Demo" },
 ];
 
 export default function RootLayout({
