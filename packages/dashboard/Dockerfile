@@ -38,7 +38,6 @@ WORKDIR /app
 # Copy Next.js standalone output
 COPY --from=base /app/packages/dashboard/.next/standalone ./
 COPY --from=base /app/packages/dashboard/.next/static ./packages/dashboard/.next/static
-COPY --from=base /app/packages/dashboard/public ./packages/dashboard/public
 
 ENV NODE_ENV=production
 EXPOSE 3001
