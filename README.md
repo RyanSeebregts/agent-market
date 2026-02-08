@@ -105,11 +105,16 @@ Live Demo: http://139.59.190.78:3001/demo
 
 In order to run the code: 
 
-# Start the gateway (port 3000)
+### Start the gateway (port 3000)
 npm run gateway
 
-# Start the dashboard (port 3001)
+### Start the dashboard (port 3001)
 npm run dashboard
 
-# Run the agent demo
+### Run the agent demo
 npm run demo
+
+### Smart Contracts
+Contract Addresses: https://coston2-explorer.flare.network/address/0x48bcB14261965E6caFa62aF17eDC4ceF69b63777
+
+
